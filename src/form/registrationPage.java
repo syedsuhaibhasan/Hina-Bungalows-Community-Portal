@@ -1,4 +1,11 @@
 
+package form;
+import dao.ConnectionProvider;
+import java.sql.Connection;
+import java.sql.Statement;
+import java.sql.ResultSet;
+import java.sql.PreparedStatement;
+import java.sql.DriverManager;
 import org.mindrot.jbcrypt.BCrypt;
 import javax.swing.ButtonGroup;
 import javax.swing.JOptionPane;
@@ -218,9 +225,21 @@ public class registrationPage extends javax.swing.JFrame {
         if (rawPassword.isEmpty()) {
             JOptionPane.showMessageDialog(null, "Password cannot be blank!", "Invlaid",JOptionPane.ERROR_MESSAGE );
         }
+        String encrypted_pw = BCrypt.hashpw(rawPassword, BCrypt.gensalt(12));
+        
         if (name.isEmpty()||email.isEmpty()||rawPassword.isEmpty()|| ownership.isEmpty()) {
             JOptionPane.showMessageDialog(null, "Please fill all the fields!", "Invalid", JOptionPane.WARNING_MESSAGE);
         }
+        
+        try{
+        Connection connection = ConnectionProvider.getcon();
+        Statement st = connection.createStatement();
+        ResultSet rs = st.executeQuery("SELECT email FROM user_data where email= '" + email.trim() + "'");
+        
+        }catch(Exception ex){
+    
+        }
+        
     this.dispose();
     BDutility.openForm(login.class.getSimpleName(),new login());
     }//GEN-LAST:event_jButton1ActionPerformed
