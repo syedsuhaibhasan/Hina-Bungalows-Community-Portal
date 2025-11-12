@@ -3,7 +3,11 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
 package form;
-
+import org.mindrot.jbcrypt.BCrypt;
+import dao.ConnectionProvider;
+import java.sql.PreparedStatement;
+import java.sql.Connection;
+import java.sql.ResultSet;
 import java.awt.Color;
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
@@ -46,7 +50,7 @@ public class login extends javax.swing.JFrame {
         loginpanel =  new utility.RoundedPanel(20);
         jLabel1 = new utility.RoundedLabel("H.B.C.P", 15);
         jLabel2 = new javax.swing.JLabel();
-        namefield = new javax.swing.JTextField();
+        emailfield = new javax.swing.JTextField();
         jLabel3 = new javax.swing.JLabel();
         jLabel4 = new javax.swing.JLabel();
         pwdfield = new javax.swing.JPasswordField();
@@ -83,16 +87,16 @@ public class login extends javax.swing.JFrame {
         jLabel2.setForeground(new java.awt.Color(255, 255, 255));
         jLabel2.setText("LOGIN");
 
-        namefield.addActionListener(new java.awt.event.ActionListener() {
+        emailfield.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
-                namefieldActionPerformed(evt);
+                emailfieldActionPerformed(evt);
             }
         });
 
         jLabel3.setText("Please enter your credentials.");
 
         jLabel4.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        jLabel4.setText("Name");
+        jLabel4.setText("Email");
 
         pwdfield.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -153,7 +157,7 @@ public class login extends javax.swing.JFrame {
                                 .addComponent(jLabel4)
                                 .addComponent(jLabel5)
                                 .addComponent(pwdfield, javax.swing.GroupLayout.DEFAULT_SIZE, 236, Short.MAX_VALUE)
-                                .addComponent(namefield))))
+                                .addComponent(emailfield))))
                     .addGroup(loginpanelLayout.createSequentialGroup()
                         .addGap(113, 113, 113)
                         .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 82, javax.swing.GroupLayout.PREFERRED_SIZE))
@@ -179,7 +183,7 @@ public class login extends javax.swing.JFrame {
                 .addGap(18, 18, 18)
                 .addComponent(jLabel4)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(namefield, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addComponent(emailfield, javax.swing.GroupLayout.PREFERRED_SIZE, 27, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(jLabel5)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
@@ -223,31 +227,65 @@ public class login extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_exitbtn1ActionPerformed
 
-    private void namefieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_namefieldActionPerformed
+    private void emailfieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_emailfieldActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_namefieldActionPerformed
+    }//GEN-LAST:event_emailfieldActionPerformed
 
     private void pwdfieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_pwdfieldActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_pwdfieldActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        String name = namefield.getText().toString();
+        String email = emailfield.getText().toString();
         String pwd = new String(pwdfield.getPassword());
+        String encrypted_pwd = BCrypt.hashpw(pwd, BCrypt.gensalt(12));
         if (jbtnadmin.isSelected()||jbtnuser.isSelected()){
         if (jbtnadmin.isSelected()) {
-            if ("admin".equalsIgnoreCase(name)&&"admin".equalsIgnoreCase(pwd)) {
-                this.dispose();
-                BDutility.openForm(admindashboard.class.getSimpleName(), new admindashboard());
+            try{
+            Connection connection = ConnectionProvider.getcon();
+            PreparedStatement preparedstatement = connection.prepareStatement("SELECT email=?,pwd_hash=? FROM admin_data");
+            preparedstatement.setString(1, email);
+            preparedstatement.setString(2, encrypted_pwd);
+            ResultSet rs = preparedstatement.executeQuery();
+                if (rs.next()) {
+                    BDutility.openForm(admindashboard.class.getSimpleName(), new admindashboard());
+                    this.dispose();
+                    rs.close();
+                    preparedstatement.close();
+                    connection.close();
+                }else{
+                JOptionPane.showMessageDialog(null, "Invalid Credentials", "Invalid", JOptionPane.WARNING_MESSAGE);
+                rs.close();
+                preparedstatement.close();
+                connection.close();
+                }
+            }catch(Exception ex){
+                System.out.println(ex.getMessage());
             }
-            else    
-                JOptionPane.showMessageDialog(null, "INVALID CREDENTIALS", "INVALID", JOptionPane.ERROR_MESSAGE);
         }
         
         if (jbtnuser.isSelected()) {
-            if ("root".equalsIgnoreCase(name)&&"root".equalsIgnoreCase(pwd)) {
-                this.dispose();
-                BDutility.openForm(userdashboard.class.getSimpleName(), new userdashboard());
+            try{
+            Connection connection = ConnectionProvider.getcon();
+            PreparedStatement preparedstatement = connection.prepareStatement("SELECT email=?,pwd_hash=? FROM user_data");
+            preparedstatement.setString(1,email);
+            preparedstatement.setString(2, encrypted_pwd);
+            
+            ResultSet rs = preparedstatement.executeQuery();
+                if (rs.next()) {
+                    BDutility.openForm(userdashboard.class.getSimpleName(), new userdashboard());
+                    this.dispose();
+                    rs.close();
+                    preparedstatement.close();
+                    connection.close();
+                }else{
+                JOptionPane.showMessageDialog(null, "Invalid Credentials", "Invalid", JOptionPane.WARNING_MESSAGE);
+                rs.close();
+                preparedstatement.close();
+                connection.close();
+                }
+            }catch(Exception e){
+                System.out.println(e.getMessage());
             }
         }
     }
@@ -296,6 +334,7 @@ public class login extends javax.swing.JFrame {
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
+    private javax.swing.JTextField emailfield;
     private javax.swing.JButton exitbtn1;
     private javax.swing.JButton jButton1;
     private javax.swing.JLabel jLabel1;
@@ -307,7 +346,6 @@ public class login extends javax.swing.JFrame {
     private javax.swing.JRadioButton jbtnadmin;
     private javax.swing.JRadioButton jbtnuser;
     private javax.swing.JPanel loginpanel;
-    private javax.swing.JTextField namefield;
     private javax.swing.JPasswordField pwdfield;
     private javax.swing.JButton signupbtn;
     // End of variables declaration//GEN-END:variables

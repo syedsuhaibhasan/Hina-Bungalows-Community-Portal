@@ -1,11 +1,11 @@
 
 package form;
 import dao.ConnectionProvider;
+import java.sql.SQLException;
 import java.sql.Connection;
 import java.sql.Statement;
 import java.sql.ResultSet;
 import java.sql.PreparedStatement;
-import java.sql.DriverManager;
 import org.mindrot.jbcrypt.BCrypt;
 import javax.swing.ButtonGroup;
 import javax.swing.JOptionPane;
@@ -211,11 +211,11 @@ public class registrationPage extends javax.swing.JFrame {
     String name = nameField.getText().toString();
     String ownership;
         if (owned.isSelected()) {
-            ownership="owend";
+            ownership="owned";
         }else{
         ownership = "Rented";
         }
-        
+    int house_num=(int) jSpinner1.getValue();
     String email = emailField.getText().toString();
     String emailRegex = "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$";
         if (!(email.matches(emailRegex))) {
@@ -225,21 +225,38 @@ public class registrationPage extends javax.swing.JFrame {
         if (rawPassword.isEmpty()) {
             JOptionPane.showMessageDialog(null, "Password cannot be blank!", "Invlaid",JOptionPane.ERROR_MESSAGE );
         }
-        String encrypted_pw = BCrypt.hashpw(rawPassword, BCrypt.gensalt(12));
+        String encrypted_pass = BCrypt.hashpw(rawPassword, BCrypt.gensalt(12));
         
         if (name.isEmpty()||email.isEmpty()||rawPassword.isEmpty()|| ownership.isEmpty()) {
             JOptionPane.showMessageDialog(null, "Please fill all the fields!", "Invalid", JOptionPane.WARNING_MESSAGE);
         }
-        
-        try{
         Connection connection = ConnectionProvider.getcon();
+        try{
+        
         Statement st = connection.createStatement();
         ResultSet rs = st.executeQuery("SELECT email FROM user_data where email= '" + email.trim() + "'");
-        
-        }catch(Exception ex){
-    
+        if(rs.next()){
+        JOptionPane.showMessageDialog(null, "email already registered", "INVALID", JOptionPane.INFORMATION_MESSAGE);
+        return;
         }
-        
+        }catch(Exception ex){
+               System.out.println(ex.getMessage());
+        }
+        try{
+        PreparedStatement preparedstatement = connection.prepareStatement("INSERT INTO user_data (name,email,ownership,pwd_hash,house_no) VALUES (?,?,?,?,?)");
+        preparedstatement.setString(1, name);
+        preparedstatement.setString(2, email);
+        preparedstatement.setString(3, ownership);
+        preparedstatement.setString(4, encrypted_pass);
+        preparedstatement.setInt(5, house_num);
+        preparedstatement.executeUpdate();
+            JOptionPane.showMessageDialog(null, "User Registered Successfully");
+            preparedstatement.close();
+            connection.close();
+        }catch(SQLException e){
+            JOptionPane.showMessageDialog(null, e.getMessage(), "INVALID", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
     this.dispose();
     BDutility.openForm(login.class.getSimpleName(),new login());
     }//GEN-LAST:event_jButton1ActionPerformed
