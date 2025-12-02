@@ -1,6 +1,7 @@
 
 package form;
 import dao.ConnectionProvider;
+import java.awt.HeadlessException;
 import java.sql.SQLException;
 import java.sql.Connection;
 import java.sql.Statement;
@@ -250,7 +251,7 @@ try{
         JOptionPane.showMessageDialog(null, "email already registered", "INVALID", JOptionPane.INFORMATION_MESSAGE);
         return;
     }
-}catch(Exception ex){
+}catch(HeadlessException | SQLException ex){
     System.out.println(ex.getMessage());
 }
 try{
@@ -270,10 +271,8 @@ try{
 }
 this.dispose();
 BDutility.openForm(login.class.getSimpleName(),new login());
-        }catch(InterruptedException ex){
+        }catch(InterruptedException | ExecutionException ex){
                System.getLogger(registrationPage.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
-        } catch (ExecutionException ex) {
-            System.getLogger(registrationPage.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
         }
     }//GEN-LAST:event_jButton1ActionPerformed
 
