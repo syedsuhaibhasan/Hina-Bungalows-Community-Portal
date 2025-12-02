@@ -5,6 +5,7 @@ import java.sql.PreparedStatement;
 import java.sql.Connection;
 import java.sql.ResultSet;
 import java.awt.Color;
+import java.sql.SQLException;
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.JOptionPane;
@@ -232,64 +233,96 @@ public class login extends javax.swing.JFrame {
     }//GEN-LAST:event_pwdfieldActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        String email = emailfield.getText().toString();
+        String email = emailfield.getText().trim();
         String pwd = new String(pwdfield.getPassword());
-        String encrypted_pwd = BCrypt.hashpw(pwd, BCrypt.gensalt(12));
-        if (jbtnadmin.isSelected()||jbtnuser.isSelected()){
+        
+         if (email.isEmpty() || pwd.isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Please enter email and password", "INVALID", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
+        
+        if (!jbtnadmin.isSelected() && !jbtnuser.isSelected()) {
+            JOptionPane.showMessageDialog(null, "PLEASE SELECT ONE OF THE ROLES", "INVALID", JOptionPane.ERROR_MESSAGE);
+            return;
+        }
+
         if (jbtnadmin.isSelected()) {
-            try{
-            Connection connection = ConnectionProvider.getcon();
-            PreparedStatement preparedstatement = connection.prepareStatement("SELECT email=?,pwd_hash=? FROM admin_data");
+            try {
+                authenticateAdmin(email,pwd);
+            } catch (SQLException ex) {
+                    ex.getMessage();
+            }
+        } else if (jbtnuser.isSelected()) {
+            try {
+                authenticateUser(email,pwd);
+            } catch (SQLException ex) {
+                 ex.getMessage();
+            }
+        }
+    }//GEN-LAST:event_jButton1ActionPerformed
+
+    public void authenticateAdmin(String email, String pwd) throws SQLException{
+        Connection connection= null;
+        PreparedStatement preparedstatement =null;
+        ResultSet rs = null;
+    try{    
+            connection = ConnectionProvider.getcon();
+            preparedstatement = connection.prepareStatement("SELECT*FROM admin_data WHERE email=?");
             preparedstatement.setString(1, email);
-            preparedstatement.setString(2, encrypted_pwd);
-            ResultSet rs = preparedstatement.executeQuery();
+            rs = preparedstatement.executeQuery();
                 if (rs.next()) {
-                    BDutility.openForm(admindashboard.class.getSimpleName(), new admindashboard());
-                    this.dispose();
-                    rs.close();
-                    preparedstatement.close();
-                    connection.close();
+                    String storedHash = rs.getString("pwd_hash");
+                    if (BCrypt.checkpw(pwd, storedHash)) {
+                        BDutility.openForm(admindashboard.class.getSimpleName(), new admindashboard());
+                        this.dispose();   
+                    }else{
+                         JOptionPane.showMessageDialog(null, "Invalid Credentials", "Invalid", JOptionPane.WARNING_MESSAGE);
+                }
                 }else{
-                JOptionPane.showMessageDialog(null, "Invalid Credentials", "Invalid", JOptionPane.WARNING_MESSAGE);
-                rs.close();
-                preparedstatement.close();
-                connection.close();
+                   JOptionPane.showMessageDialog(null, "Invalid Credentials", "Invalid", JOptionPane.ERROR_MESSAGE);
                 }
             }catch(Exception ex){
                 System.out.println(ex.getMessage());
             }
-        }
-        
-        if (jbtnuser.isSelected()) {
-            try{
-            Connection connection = ConnectionProvider.getcon();
-            PreparedStatement preparedstatement = connection.prepareStatement("SELECT email=?,pwd_hash=? FROM user_data");
-            preparedstatement.setString(1,email);
-            preparedstatement.setString(2, encrypted_pwd);
-            
-            ResultSet rs = preparedstatement.executeQuery();
-                if (rs.next()) {
-                    BDutility.openForm(userdashboard.class.getSimpleName(), new userdashboard());
-                    this.dispose();
-                    rs.close();
-                    preparedstatement.close();
-                    connection.close();
-                }else{
-                JOptionPane.showMessageDialog(null, "Invalid Credentials", "Invalid", JOptionPane.WARNING_MESSAGE);
+            finally{
                 rs.close();
                 preparedstatement.close();
                 connection.close();
+            }
+    }
+    
+    public void authenticateUser(String email, String pwd) throws SQLException{
+        Connection connection= null;
+        PreparedStatement preparedstatement =null;
+        ResultSet rs = null;
+    try{
+            connection = ConnectionProvider.getcon();
+            preparedstatement = connection.prepareStatement("SELECT*FROM user_data WHERE email=?");
+            preparedstatement.setString(1,email);    
+            
+            rs = preparedstatement.executeQuery();
+                if (rs.next()) {
+                    String storedHash = rs.getString("pwd_hash");
+                    if (BCrypt.checkpw(pwd, storedHash)) {
+                        BDutility.openForm(userdashboard.class.getSimpleName(), new userdashboard());
+                        this.dispose();   
+                    }
+                    else{
+                        JOptionPane.showMessageDialog(null, "Invalid Credentials", "Invalid", JOptionPane.WARNING_MESSAGE);
+                    }
+                }else{
+                JOptionPane.showMessageDialog(null, "Invalid Credentials", "Invalid", JOptionPane.WARNING_MESSAGE);
                 }
             }catch(Exception e){
                 System.out.println(e.getMessage());
             }
-        }
+    finally{
+                rs.close();
+                preparedstatement.close();
+                connection.close();
     }
-      else
-            JOptionPane.showMessageDialog(null, "PLEASE SELECT ONE OF THE ROLES", "INVALID", JOptionPane.ERROR_MESSAGE);
-// TODO add your handling code here:
-    }//GEN-LAST:event_jButton1ActionPerformed
-
+    }
+    
     private void jbtnuserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jbtnuserActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_jbtnuserActionPerformed
