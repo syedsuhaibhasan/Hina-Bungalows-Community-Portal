@@ -158,16 +158,16 @@
           <Group type="103" groupAlignment="0" attributes="0">
               <Group type="102" alignment="0" attributes="0">
                   <EmptySpace min="-2" pref="36" max="-2" attributes="0"/>
-                  <Group type="103" groupAlignment="3" attributes="0">
-                      <Component id="billbtn1" alignment="3" min="-2" pref="82" max="-2" attributes="0"/>
-                      <Component id="maintainencebtn" alignment="3" min="-2" pref="82" max="-2" attributes="0"/>
+                  <Group type="103" groupAlignment="0" attributes="0">
+                      <Component id="billbtn1" min="-2" pref="82" max="-2" attributes="0"/>
+                      <Component id="maintainencebtn" min="-2" pref="82" max="-2" attributes="0"/>
                   </Group>
-                  <EmptySpace min="-2" pref="32" max="-2" attributes="0"/>
-                  <Group type="103" groupAlignment="3" attributes="0">
-                      <Component id="payementstatbtn" alignment="3" min="-2" pref="82" max="-2" attributes="0"/>
-                      <Component id="billbtn2" alignment="3" min="-2" pref="82" max="-2" attributes="0"/>
+                  <EmptySpace min="-2" pref="34" max="-2" attributes="0"/>
+                  <Group type="103" groupAlignment="0" attributes="0">
+                      <Component id="billbtn2" min="-2" pref="82" max="-2" attributes="0"/>
+                      <Component id="payementstatbtn" min="-2" pref="82" max="-2" attributes="0"/>
                   </Group>
-                  <EmptySpace min="-2" pref="41" max="-2" attributes="0"/>
+                  <EmptySpace min="-2" pref="43" max="-2" attributes="0"/>
                   <Group type="103" groupAlignment="3" attributes="0">
                       <Component id="notificationbtn" alignment="3" min="-2" pref="82" max="-2" attributes="0"/>
                       <Component id="complainstatbtn" alignment="3" min="-2" pref="82" max="-2" attributes="0"/>
