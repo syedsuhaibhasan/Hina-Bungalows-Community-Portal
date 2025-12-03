@@ -1,15 +1,21 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
- */
 package form;
 
+import dao.ConnectionProvider;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.awt.Graphics2D;
 import java.awt.Image;
+import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.IOException;
+import java.sql.SQLException;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
+import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import utility.UIUtils;
 
@@ -193,16 +199,58 @@ public class KEBillUpload extends javax.swing.JFrame {
         
         // TODO add your handling code here:
     }//GEN-LAST:event_dateFieldActionPerformed
-
+    
+    private byte[] convertTobyte(BufferedImage scaledBufferedImage, String format) throws IOException{
+        if (scaledBufferedImage==null) return null;
+        try(ByteArrayOutputStream baos = new ByteArrayOutputStream()){
+            ImageIO.write(scaledBufferedImage, format, baos);
+            return baos.toByteArray();
+        }
+    }
+    
     private void uploadbtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_uploadbtnActionPerformed
-        String date = dateField.getText().trim();
-        String invoiceNo = invoiceNofield.getText().trim();
-        String consumerNo = consumerNofield.getText().trim();
-        String units = unitsfield.getText().trim();
-        String amountDue = amountDuefield.getText().trim();
-        
-        
-        // TODO add your handling code here:
+                               
+            try{                                          
+                String date = dateField.getText().trim();
+                String invoiceNo = invoiceNofield.getText().trim();
+                String consumerNo = consumerNofield.getText().trim();
+                String units = unitsfield.getText().trim();
+                String amountDue = amountDuefield.getText().trim();
+                byte[] img = convertTobyte(scaledBufferedImage, "jpeg");
+                
+                if (consumerNo.isEmpty() || invoiceNo.isEmpty() || date.isEmpty()) {
+                    JOptionPane.showMessageDialog(this, "Please fill Consumer No, Invoice No and Date.", "Validation", JOptionPane.WARNING_MESSAGE);
+                    return;
+                }
+                
+                Connection connection = null;
+                PreparedStatement preparedstatement = null;
+                
+                try{
+                    connection = ConnectionProvider.getcon();
+                    preparedstatement = connection.prepareStatement("INSERT INTO KEBilldetails (issueDate,invoiceNo,consumerNo,units,amountDue,billImage) "
+                            + "VALUES (?,?,?,?,?,?)");
+                    preparedstatement.setString(1, date);
+                    preparedstatement.setString(2, invoiceNo);
+                    preparedstatement.setString(3, consumerNo);
+                    preparedstatement.setString(4, units);
+                    preparedstatement.setString(5, amountDue);
+                    preparedstatement.setBytes(6, img);
+                    preparedstatement.executeUpdate();
+                    JOptionPane.showMessageDialog(null, "Bill Uploaded Successfully");
+                }catch(Exception ex){
+                    System.out.println(ex.getMessage());
+                }finally{
+                    try {
+                        connection.close();
+                        preparedstatement.close();
+                    } catch (SQLException ex) {
+                        System.out.println(ex.getMessage());
+                    }
+                }
+            }catch(IOException ex){
+                System.out.println(ex.getMessage());
+            }
     }//GEN-LAST:event_uploadbtnActionPerformed
 
     private void consumerNofieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_consumerNofieldActionPerformed
@@ -215,7 +263,7 @@ public class KEBillUpload extends javax.swing.JFrame {
     
     BufferedImage originalImage = null;
     File selectedFile = null;
-    
+    BufferedImage scaledBufferedImage = null;
     private void billMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_billMouseClicked
         JFileChooser fileChooser = new JFileChooser();
          int result = fileChooser.showOpenDialog(this);
@@ -238,8 +286,13 @@ public class KEBillUpload extends javax.swing.JFrame {
                 int scaledHeight = (int) (originalHeight * scale);
                 
                 Image scaledImage = originalImage.getScaledInstance(scaledWidth, scaledHeight, Image.SCALE_SMOOTH);
+                scaledBufferedImage = new BufferedImage(scaledWidth, scaledHeight, BufferedImage.TYPE_INT_ARGB);
+                Graphics2D g2 = scaledBufferedImage.createGraphics();
+                g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+                g2.drawImage(scaledImage, 0, 0, null);
+                g2.dispose();
                 
-                ImageIcon icon = new ImageIcon(scaledImage);
+                ImageIcon icon = new ImageIcon(scaledBufferedImage);
                 bill.setIcon(icon);
             }catch(Exception ex){
                 ex.printStackTrace();
@@ -249,10 +302,6 @@ public class KEBillUpload extends javax.swing.JFrame {
     }//GEN-LAST:event_billMouseClicked
 
     
-    
-    /**
-     * @param args the command line arguments
-     */
     public static void main(String args[]) {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
