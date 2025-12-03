@@ -215,6 +215,7 @@ public class KEBillUpload extends javax.swing.JFrame {
     
     BufferedImage originalImage = null;
     File selectedFile = null;
+    
     private void billMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_billMouseClicked
         JFileChooser fileChooser = new JFileChooser();
          int result = fileChooser.showOpenDialog(this);
@@ -247,6 +248,8 @@ public class KEBillUpload extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_billMouseClicked
 
+    
+    
     /**
      * @param args the command line arguments
      */
