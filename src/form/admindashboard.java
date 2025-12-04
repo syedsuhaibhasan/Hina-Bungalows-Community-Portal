@@ -3,7 +3,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
  */
 package form;
-
+import utility.BDutility;
 import java.awt.Color;
 import javax.swing.BorderFactory;
 import javax.swing.SwingUtilities;
@@ -212,7 +212,7 @@ public class admindashboard extends javax.swing.JFrame {
     }//GEN-LAST:event_logoutbtnActionPerformed
 
     private void billbtn1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_billbtn1ActionPerformed
-
+        BDutility.openForm(KEBillUpload.class.getSimpleName(), new KEBillUpload());
         // TODO add your handling code here:
     }//GEN-LAST:event_billbtn1ActionPerformed
 
