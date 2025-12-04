@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/GUIForms/JFrame.java to edit this template
- */
 package form;
 
 import java.awt.Color;
@@ -10,17 +6,10 @@ import javax.swing.SwingUtilities;
 import utility.BDutility;
 import utility.UIUtils;
 
-/**
- *
- * @author humai
- */
 public class admindashboard extends javax.swing.JFrame {
     
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(admindashboard.class.getName());
 
-    /**
-     * Creates new form admindashboard
-     */
     public admindashboard() {
         initComponents();
         this.getRootPane().setBorder(BorderFactory.createMatteBorder(3,3,3,3,Color.BLACK));
@@ -54,6 +43,7 @@ public class admindashboard extends javax.swing.JFrame {
         setUndecorated(true);
 
         jPanel1.setBackground(new java.awt.Color(2, 100, 182));
+        jPanel1.setForeground(new java.awt.Color(2, 100, 182));
 
         jLabel2.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
         jLabel2.setForeground(new java.awt.Color(255, 255, 255));
@@ -212,7 +202,8 @@ public class admindashboard extends javax.swing.JFrame {
     }//GEN-LAST:event_logoutbtnActionPerformed
 
     private void billbtn1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_billbtn1ActionPerformed
-
+        this.dispose();
+        BDutility.openForm(KEBillUpload.class.getSimpleName(), new KEBillUpload());
         // TODO add your handling code here:
     }//GEN-LAST:event_billbtn1ActionPerformed
 
