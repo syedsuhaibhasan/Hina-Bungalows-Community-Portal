@@ -63,6 +63,7 @@ public class KEBillUpload extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setBackground(new java.awt.Color(255, 255, 255));
+        setUndecorated(true);
 
         jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         jLabel1.setText("Consumer No.");
@@ -81,7 +82,7 @@ public class KEBillUpload extends javax.swing.JFrame {
         jLabel3.setText("Current Month Units");
 
         jLabel4.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        jLabel4.setText("Amount Due");
+        jLabel4.setText("Amount Payable");
 
         amountDuefield.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -193,6 +194,7 @@ public class KEBillUpload extends javax.swing.JFrame {
         );
 
         pack();
+        setLocationRelativeTo(null);
     }// </editor-fold>//GEN-END:initComponents
 
     private void dateFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_dateFieldActionPerformed
@@ -238,6 +240,7 @@ public class KEBillUpload extends javax.swing.JFrame {
                     preparedstatement.setBytes(6, img);
                     preparedstatement.executeUpdate();
                     JOptionPane.showMessageDialog(null, "Bill Uploaded Successfully");
+                    this.dispose();
                 }catch(Exception ex){
                     System.out.println(ex.getMessage());
                 }finally{
