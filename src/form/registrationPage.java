@@ -56,9 +56,10 @@ public class registrationPage extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setBackground(new java.awt.Color(255, 255, 255));
-        setMaximumSize(new java.awt.Dimension(384, 400));
         setMinimumSize(new java.awt.Dimension(384, 400));
         setUndecorated(true);
+
+        signupPanel.setBackground(new java.awt.Color(255, 255, 255));
 
         jLabel1.setBackground(new java.awt.Color(255, 255, 255));
         jLabel1.setFont(new java.awt.Font("Segoe UI Historic", 1, 36)); // NOI18N

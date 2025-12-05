@@ -3,8 +3,8 @@ package form;
 import dao.ConnectionProvider;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.awt.Graphics2D;
+import java.awt.HeadlessException;
 import java.awt.Image;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
@@ -12,6 +12,10 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
@@ -24,7 +28,7 @@ import utility.UIUtils;
  * @author humai
  */
 public class KEBillUpload extends javax.swing.JFrame {
-    
+    ExecutorService service = Executors.newSingleThreadExecutor();
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(KEBillUpload.class.getName());
 
     /**
@@ -32,6 +36,7 @@ public class KEBillUpload extends javax.swing.JFrame {
      */
     public KEBillUpload() {
         initComponents();
+        
     }
 
     /**
@@ -202,6 +207,7 @@ public class KEBillUpload extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_dateFieldActionPerformed
     
+    
     private byte[] convertTobyte(BufferedImage scaledBufferedImage, String format) throws IOException{
         if (scaledBufferedImage==null) return null;
         try(ByteArrayOutputStream baos = new ByteArrayOutputStream()){
@@ -218,7 +224,12 @@ public class KEBillUpload extends javax.swing.JFrame {
                 String consumerNo = consumerNofield.getText().trim();
                 String units = unitsfield.getText().trim();
                 String amountDue = amountDuefield.getText().trim();
-                byte[] img = convertTobyte(scaledBufferedImage, "jpeg");
+                //multithreading
+                Future<byte[]> task1 = service.submit(()->{
+                    return convertTobyte(scaledBufferedImage,"jpeg");
+                });
+                byte[] img = task1.get();
+                service.shutdown();
                 
                 if (consumerNo.isEmpty() || invoiceNo.isEmpty() || date.isEmpty()) {
                     JOptionPane.showMessageDialog(this, "Please fill Consumer No, Invoice No and Date.", "Validation", JOptionPane.WARNING_MESSAGE);
@@ -241,7 +252,7 @@ public class KEBillUpload extends javax.swing.JFrame {
                     preparedstatement.executeUpdate();
                     JOptionPane.showMessageDialog(null, "Bill Uploaded Successfully");
                     this.dispose();
-                }catch(Exception ex){
+                }catch(HeadlessException | SQLException ex){
                     System.out.println(ex.getMessage());
                 }finally{
                     try {
@@ -251,9 +262,9 @@ public class KEBillUpload extends javax.swing.JFrame {
                         System.out.println(ex.getMessage());
                     }
                 }
-            }catch(IOException ex){
-                System.out.println(ex.getMessage());
-            }
+            } catch (InterruptedException | ExecutionException ex) {
+            System.getLogger(KEBillUpload.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+        }
     }//GEN-LAST:event_uploadbtnActionPerformed
 
     private void consumerNofieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_consumerNofieldActionPerformed
