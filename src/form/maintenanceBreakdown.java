@@ -224,6 +224,7 @@ public class maintenanceBreakdown extends javax.swing.JFrame {
         savebtn.addActionListener(this::savebtnActionPerformed);
 
         jButton2.setText("REFRESH");
+        jButton2.addActionListener(this::jButton2ActionPerformed);
 
         jButton3.setText("RESET");
 
@@ -390,7 +391,7 @@ public class maintenanceBreakdown extends javax.swing.JFrame {
         int sweeperSalary = getIntFromTable(4, 1);
         int misc = getIntFromTable(5, 1);
         
-        int collected = 50000;
+        int collected = 0;
         try {
             String collectedText = lblAmount.getText().replaceAll("Rs\\.?", "").replaceAll(",", "").trim();
             collected = (int) Math.round(Double.parseDouble(collectedText));
@@ -400,7 +401,8 @@ public class maintenanceBreakdown extends javax.swing.JFrame {
         int totalSpent = updateSpent();
         int remainingInt = collected - totalSpent;
         String remaining = String.valueOf(remainingInt);
-   
+        
+        
                 Connection connection = null;
                 PreparedStatement preparedstatement = null;
                 try{
@@ -437,6 +439,11 @@ public class maintenanceBreakdown extends javax.swing.JFrame {
         }
               
     }//GEN-LAST:event_savebtnActionPerformed
+
+    private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+
+        // TODO add your handling code here:
+    }//GEN-LAST:event_jButton2ActionPerformed
 
 
     /**

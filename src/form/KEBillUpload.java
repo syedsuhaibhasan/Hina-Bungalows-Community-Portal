@@ -3,8 +3,8 @@ package form;
 import dao.ConnectionProvider;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.awt.Graphics2D;
+import java.awt.HeadlessException;
 import java.awt.Image;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
@@ -28,7 +28,7 @@ import utility.UIUtils;
  * @author humai
  */
 public class KEBillUpload extends javax.swing.JFrame {
-    ExecutorService service = Executors.newFixedThreadPool(3);
+    ExecutorService service = Executors.newSingleThreadExecutor();
     private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(KEBillUpload.class.getName());
 
     /**
@@ -229,6 +229,7 @@ public class KEBillUpload extends javax.swing.JFrame {
                     return convertTobyte(scaledBufferedImage,"jpeg");
                 });
                 byte[] img = task1.get();
+                service.shutdown();
                 
                 if (consumerNo.isEmpty() || invoiceNo.isEmpty() || date.isEmpty()) {
                     JOptionPane.showMessageDialog(this, "Please fill Consumer No, Invoice No and Date.", "Validation", JOptionPane.WARNING_MESSAGE);
@@ -239,7 +240,6 @@ public class KEBillUpload extends javax.swing.JFrame {
                 PreparedStatement preparedstatement = null;
                 
                 try{
-                    
                     connection = ConnectionProvider.getcon();
                     preparedstatement = connection.prepareStatement("INSERT INTO KEBilldetails (issueDate,invoiceNo,consumerNo,units,amountDue,billImage) "
                             + "VALUES (?,?,?,?,?,?)");
@@ -252,7 +252,7 @@ public class KEBillUpload extends javax.swing.JFrame {
                     preparedstatement.executeUpdate();
                     JOptionPane.showMessageDialog(null, "Bill Uploaded Successfully");
                     this.dispose();
-                }catch(Exception ex){
+                }catch(HeadlessException | SQLException ex){
                     System.out.println(ex.getMessage());
                 }finally{
                     try {
@@ -262,9 +262,7 @@ public class KEBillUpload extends javax.swing.JFrame {
                         System.out.println(ex.getMessage());
                     }
                 }
-            } catch (InterruptedException ex) {
-            System.getLogger(KEBillUpload.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
-        } catch (ExecutionException ex) {
+            } catch (InterruptedException | ExecutionException ex) {
             System.getLogger(KEBillUpload.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
         }
     }//GEN-LAST:event_uploadbtnActionPerformed

@@ -202,12 +202,12 @@ public class admindashboard extends javax.swing.JFrame {
     }//GEN-LAST:event_logoutbtnActionPerformed
 
     private void billbtn1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_billbtn1ActionPerformed
-        this.dispose();
         BDutility.openForm(KEBillUpload.class.getSimpleName(), new KEBillUpload());
         // TODO add your handling code here:
     }//GEN-LAST:event_billbtn1ActionPerformed
 
     private void maintainencebtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_maintainencebtnActionPerformed
+        BDutility.openForm(maintenanceBreakdown.class.getSimpleName(), new maintenanceBreakdown());
         // TODO add your handling code here:
     }//GEN-LAST:event_maintainencebtnActionPerformed
 
