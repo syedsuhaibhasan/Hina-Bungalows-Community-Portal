@@ -26,7 +26,7 @@ public class maintenanceBreakdown extends javax.swing.JFrame {
     public maintenanceBreakdown() {
         initComponents();
         
-        // Set sensible defaults for month/year so save always has values
+        //for setting default values for month and year
         if (jComboBox1.getItemCount() > 0) {
             jComboBox1.setSelectedIndex(0);
             this.month = (String) jComboBox1.getSelectedItem();
@@ -138,7 +138,7 @@ public class maintenanceBreakdown extends javax.swing.JFrame {
 
         lblAmount.setBackground(new java.awt.Color(255, 255, 255));
         lblAmount.setForeground(new java.awt.Color(2, 100, 182));
-        lblAmount.setText("Rs. 50000");
+        lblAmount.setText("Rs. ");
 
         jLabel7.setForeground(new java.awt.Color(102, 102, 255));
         jLabel7.setText("Rs.");
@@ -184,10 +184,15 @@ public class maintenanceBreakdown extends javax.swing.JFrame {
         jTable1.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
                 {"K.E Bill", null},
+                {null, null},
                 {"K.W.S.B Bill", null},
+                {null, null},
                 {"Repair", null},
+                {null, null},
                 {"Guard Salary", null},
+                {null, null},
                 {"Sweeper Salary", null},
+                {null, null},
                 {"Misc", null}
             },
             new String [] {
@@ -296,9 +301,9 @@ public class maintenanceBreakdown extends javax.swing.JFrame {
         return month;
     }
     private void jComboBox1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBox1ActionPerformed
-        // store selected month in instance field (do not shadow)
+        
         this.month = (String) jComboBox1.getSelectedItem();
-        // TODO add your handling code here: (e.g. reload data for selected month)
+        // TODO add your handling code here:
     }//GEN-LAST:event_jComboBox1ActionPerformed
 
     
@@ -307,18 +312,18 @@ public class maintenanceBreakdown extends javax.swing.JFrame {
         return year;
     }
     private void jComboBox2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBox2ActionPerformed
-        // store selected year in instance field (do not shadow)
+       
         this.year = (String) jComboBox2.getSelectedItem();
-        // TODO add your handling code here: (e.g. reload data for selected year)
+        // TODO add your handling code here: 
     }//GEN-LAST:event_jComboBox2ActionPerformed
     
     private boolean isEmpty(){
-        // Ensure all amount cells (column 1) for each row are non-null and parseable as numbers
+        
         int rows = jTable1.getRowCount();
         for (int i = 0; i < rows; i++) {
             Object value = jTable1.getValueAt(i, 1);
             if (value == null) return true;
-            // allow numeric types or numeric strings
+            //if there is number the loop will then immediatly jump to next iteration 'continue meaning'
             if (value instanceof Number) continue;
             String s = value.toString().trim();
             if (s.isEmpty()) return true;
@@ -339,6 +344,7 @@ public class maintenanceBreakdown extends javax.swing.JFrame {
             try {
                 int value;
                 if (obj instanceof Number) {
+                    //this type casted obj in to integer to store it in value local variable
                     value = ((Number) obj).intValue();
                 } else {
                     String s = obj.toString().trim().replaceAll(",", "");
@@ -347,15 +353,13 @@ public class maintenanceBreakdown extends javax.swing.JFrame {
                 }
                 spent += value;
             } catch (NumberFormatException ex) {
-                // skip invalid entry
+                System.out.println(ex.getMessage());
             }
         }
         return spent;
     }
-
-    /**
-     * Safely read an int value from the table cell. Returns 0 on null/invalid.
-     */
+    
+    
     private int getIntFromTable(int row, int col) {
         try {
             Object obj = jTable1.getValueAt(row, col);
@@ -364,7 +368,7 @@ public class maintenanceBreakdown extends javax.swing.JFrame {
             String s = obj.toString().trim().replaceAll(",", "");
             if (s.isEmpty()) return 0;
             return (int) Math.round(Double.parseDouble(s));
-        } catch (Exception ex) {
+        } catch (NumberFormatException ex) {
             return 0;
         }
     }
@@ -372,30 +376,28 @@ public class maintenanceBreakdown extends javax.swing.JFrame {
     
     private void savebtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_savebtnActionPerformed
          
-                // if any required amount cell is empty or invalid, prompt user
-                if (isEmpty()) {
-                    JOptionPane.showMessageDialog(null, "Please fill all the fields with numeric values", "INVALID", JOptionPane.WARNING_MESSAGE);
-                    return;
-                }
+    
+        if (isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Please fill all the fields with numeric values", "INVALID", JOptionPane.WARNING_MESSAGE);
+            return;
+        }
          
         try{
-        // table rows are 0..(n-1) - map accordingly
         int keBillamount = getIntFromTable(0, 1);
         int kwsbBillamount = getIntFromTable(1, 1);
         int repair = getIntFromTable(2, 1);
         int guardSalary = getIntFromTable(3, 1);
         int sweeperSalary = getIntFromTable(4, 1);
         int misc = getIntFromTable(5, 1);
-
-        // compute remaining = collected - spent
-        int collected = 0;
+        
+        int collected = 50000;
         try {
             String collectedText = lblAmount.getText().replaceAll("Rs\\.?", "").replaceAll(",", "").trim();
             collected = (int) Math.round(Double.parseDouble(collectedText));
-        } catch (Exception ex) {
-            // fallback to 0
+        } catch (NumberFormatException ex) {
+            System.out.println(ex.getMessage());
         }
-        int totalSpent = keBillamount + kwsbBillamount + repair + guardSalary + sweeperSalary + misc;
+        int totalSpent = updateSpent();
         int remainingInt = collected - totalSpent;
         String remaining = String.valueOf(remainingInt);
    
@@ -416,7 +418,7 @@ public class maintenanceBreakdown extends javax.swing.JFrame {
                     preparedstatement.setString(9, remaining);
                     // execute insert
                     preparedstatement.executeUpdate();
-                }catch(Exception ex){
+                }catch(SQLException ex){
                     System.out.println(ex.getMessage());
                 }finally{
                     try {
