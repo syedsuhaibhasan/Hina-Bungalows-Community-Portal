@@ -30,7 +30,7 @@ public class login extends javax.swing.JFrame {
         ButtonGroup roleGroup = new ButtonGroup();
         roleGroup.add(jbtnuser);
         roleGroup.add(jbtnadmin);
-        BDutility.setimage(this, "images/login-page.jpg", 800, 600);
+        BDutility.setimage(this, "utility/images/login-page.jpg", 800, 600);
        this.getRootPane().setBorder(BorderFactory.createMatteBorder(9,9,9,9,Color.BLACK));
     }
 

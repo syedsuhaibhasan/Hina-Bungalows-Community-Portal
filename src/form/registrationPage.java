@@ -263,6 +263,16 @@ try{
     preparedstatement.setString(4, encrypted_pass);
     preparedstatement.setInt(5, house_num);
     preparedstatement.executeUpdate();
+
+    PreparedStatement houseUpsert = connection.prepareStatement(
+        "INSERT INTO houses (house_no, owner_name) VALUES (?, ?) "
+        + "ON DUPLICATE KEY UPDATE owner_name = VALUES(owner_name)"
+    );
+    houseUpsert.setInt(1, house_num);
+    houseUpsert.setString(2, name);
+    houseUpsert.executeUpdate();
+    houseUpsert.close();
+
     JOptionPane.showMessageDialog(null, "User Registered Successfully");
     preparedstatement.close();
     connection.close();

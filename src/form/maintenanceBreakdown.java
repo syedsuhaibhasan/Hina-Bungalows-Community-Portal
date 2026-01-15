@@ -7,9 +7,12 @@ package form;
 import dao.ConnectionProvider;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import utility.UIUtils;
 
 /**
@@ -35,6 +38,15 @@ public class maintenanceBreakdown extends javax.swing.JFrame {
             jComboBox2.setSelectedIndex(0);
             this.year = (String) jComboBox2.getSelectedItem();
         }
+
+        jTable1.getModel().addTableModelListener(new TableModelListener() {
+            @Override
+            public void tableChanged(TableModelEvent e) {
+                updateTotalsUI();
+            }
+        });
+
+        updateTotalsUI();
     }
 
     /**
@@ -227,6 +239,7 @@ public class maintenanceBreakdown extends javax.swing.JFrame {
         jButton2.addActionListener(this::jButton2ActionPerformed);
 
         jButton3.setText("RESET");
+        jButton3.addActionListener(this::jButton3ActionPerformed);
 
         javax.swing.GroupLayout jPanel4Layout = new javax.swing.GroupLayout(jPanel4);
         jPanel4.setLayout(jPanel4Layout);
@@ -322,12 +335,23 @@ public class maintenanceBreakdown extends javax.swing.JFrame {
         
         int rows = jTable1.getRowCount();
         for (int i = 0; i < rows; i++) {
+            Object categoryObj = jTable1.getValueAt(i, 0);
+            String category = categoryObj == null ? "" : categoryObj.toString().trim();
+            if (category.isEmpty()) {
+                continue;
+            }
+
             Object value = jTable1.getValueAt(i, 1);
-            if (value == null) return true;
-            //if there is number the loop will then immediatly jump to next iteration 'continue meaning'
-            if (value instanceof Number) continue;
+            if (value == null) {
+                continue;
+            }
+            if (value instanceof Number) {
+                continue;
+            }
             String s = value.toString().trim();
-            if (s.isEmpty()) return true;
+            if (s.isEmpty()) {
+                continue;
+            }
             try {
                 Double.parseDouble(s.replaceAll(",", ""));
             } catch (NumberFormatException ex) {
@@ -340,6 +364,11 @@ public class maintenanceBreakdown extends javax.swing.JFrame {
     private int  updateSpent(){
         int spent = 0;
         for (int i = 0; i < jTable1.getRowCount(); i++) {
+            Object categoryObj = jTable1.getValueAt(i, 0);
+            String category = categoryObj == null ? "" : categoryObj.toString().trim();
+            if (category.isEmpty()) {
+                continue;
+            }
             Object obj = jTable1.getValueAt(i, 1);
             if (obj == null) continue;
             try {
@@ -373,6 +402,89 @@ public class maintenanceBreakdown extends javax.swing.JFrame {
             return 0;
         }
     }
+
+    private int getAmountForCategory(String categoryName) {
+        if (categoryName == null || categoryName.trim().isEmpty()) return 0;
+        for (int i = 0; i < jTable1.getRowCount(); i++) {
+            Object categoryObj = jTable1.getValueAt(i, 0);
+            String category = categoryObj == null ? "" : categoryObj.toString().trim();
+            if (categoryName.equalsIgnoreCase(category)) {
+                return getIntFromTable(i, 1);
+            }
+        }
+        return 0;
+    }
+
+    private int getSelectedYearInt() {
+        try {
+            if (this.year == null) return 0;
+            return Integer.parseInt(this.year.trim());
+        } catch (NumberFormatException ex) {
+            return 0;
+        }
+    }
+
+    private int parseCollectedAmountLabel() {
+        try {
+            String collectedText = lblAmount.getText().replaceAll("Rs\\.?", "").replaceAll(",", "").trim();
+            if (collectedText.isEmpty()) return 0;
+            return (int) Math.round(Double.parseDouble(collectedText));
+        } catch (NumberFormatException ex) {
+            return 0;
+        }
+    }
+
+    private void updateTotalsUI() {
+        int spent = updateSpent();
+        jLabel7.setText("Rs. " + spent);
+
+        int collected = parseCollectedAmountLabel();
+        int remaining = collected - spent;
+        jLabel8.setText("Rs. " + remaining);
+    }
+
+    private int getCollectedAmountFromPayments() throws SQLException {
+        Connection connection = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            connection = ConnectionProvider.getcon();
+            if (connection == null) {
+                throw new SQLException("Database connection is null");
+            }
+
+            int yearInt = getSelectedYearInt();
+            int perHouseFee = 2000;
+            String sql = "SELECT COUNT(*) AS paidCount "
+                       + "FROM payments "
+                       + "WHERE month = ? AND year = ? "
+                       + "AND (LOWER(CAST(payment_status AS CHAR)) IN ('1','true','paid'))";
+            ps = connection.prepareStatement(sql);
+            ps.setString(1, this.month);
+            ps.setInt(2, yearInt);
+            rs = ps.executeQuery();
+            if (rs.next()) {
+                return rs.getInt("paidCount") * perHouseFee;
+            }
+            return 0;
+        } finally {
+            try { if (rs != null) rs.close(); } catch (SQLException ex) { }
+            try { if (ps != null) ps.close(); } catch (SQLException ex) { }
+            try { if (connection != null) connection.close(); } catch (SQLException ex) { }
+        }
+    }
+
+    private void ensureCollectedAmountColumnExists(Connection connection) {
+        PreparedStatement ps = null;
+        try {
+            ps = connection.prepareStatement("ALTER TABLE maintenanceBreakdown ADD COLUMN collectedAmount INT DEFAULT 0");
+            ps.executeUpdate();
+        } catch (SQLException ex) {
+            // ignore (already exists or no permission)
+        } finally {
+            try { if (ps != null) ps.close(); } catch (SQLException ex) { }
+        }
+    }
     
     
     private void savebtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_savebtnActionPerformed
@@ -384,20 +496,15 @@ public class maintenanceBreakdown extends javax.swing.JFrame {
         }
          
         try{
-        int keBillamount = getIntFromTable(0, 1);
-        int kwsbBillamount = getIntFromTable(1, 1);
-        int repair = getIntFromTable(2, 1);
-        int guardSalary = getIntFromTable(3, 1);
-        int sweeperSalary = getIntFromTable(4, 1);
-        int misc = getIntFromTable(5, 1);
+        int keBillamount = getAmountForCategory("K.E Bill");
+        int kwsbBillamount = getAmountForCategory("K.W.S.B Bill");
+        int repair = getAmountForCategory("Repair");
+        int guardSalary = getAmountForCategory("Guard Salary");
+        int sweeperSalary = getAmountForCategory("Sweeper Salary");
+        int misc = getAmountForCategory("Misc");
         
         int collected = 0;
-        try {
-            String collectedText = lblAmount.getText().replaceAll("Rs\\.?", "").replaceAll(",", "").trim();
-            collected = (int) Math.round(Double.parseDouble(collectedText));
-        } catch (NumberFormatException ex) {
-            System.out.println(ex.getMessage());
-        }
+        collected = parseCollectedAmountLabel();
         int totalSpent = updateSpent();
         int remainingInt = collected - totalSpent;
         String remaining = String.valueOf(remainingInt);
@@ -407,6 +514,7 @@ public class maintenanceBreakdown extends javax.swing.JFrame {
                 PreparedStatement preparedstatement = null;
                 try{
                     connection = ConnectionProvider.getcon();
+                    ensureCollectedAmountColumnExists(connection);
                     preparedstatement = connection.prepareStatement("INSERT INTO maintenanceBreakdown (month,year,keBillamount,kwsbBillamount,"
                                                                      + "repair,guardSalary,sweeperSalary,misc,remainingAmount) VALUES (?,?,?,?,?,?,?,?,?)");
                     preparedstatement.setString(1, this.month);
@@ -441,9 +549,46 @@ public class maintenanceBreakdown extends javax.swing.JFrame {
     }//GEN-LAST:event_savebtnActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
+        try {
+            int collected = getCollectedAmountFromPayments();
+            lblAmount.setText("Rs. " + collected);
+            updateTotalsUI();
 
-        // TODO add your handling code here:
+            Connection connection = null;
+            PreparedStatement ps = null;
+            try {
+                connection = ConnectionProvider.getcon();
+                if (connection != null) {
+                    ensureCollectedAmountColumnExists(connection);
+                    ps = connection.prepareStatement(
+                        "UPDATE maintenanceBreakdown SET collectedAmount = ? WHERE month = ? AND year = ?"
+                    );
+                    ps.setInt(1, collected);
+                    ps.setString(2, this.month);
+                    ps.setString(3, this.year);
+                    ps.executeUpdate();
+                }
+            } finally {
+                try { if (ps != null) ps.close(); } catch (SQLException ex) { }
+                try { if (connection != null) connection.close(); } catch (SQLException ex) { }
+            }
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Error refreshing collected amount: " + ex.getMessage());
+        }
     }//GEN-LAST:event_jButton2ActionPerformed
+
+    private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {
+        for (int i = 0; i < jTable1.getRowCount(); i++) {
+            Object categoryObj = jTable1.getValueAt(i, 0);
+            String category = categoryObj == null ? "" : categoryObj.toString().trim();
+            if (category.isEmpty()) {
+                jTable1.setValueAt(null, i, 1);
+            } else {
+                jTable1.setValueAt(0, i, 1);
+            }
+        }
+        lblAmount.setText("Rs. ");
+    }
 
 
     /**
