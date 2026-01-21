@@ -1,5 +1,5 @@
 
-package form;
+package form.adminView;
 import dao.ConnectionProvider;
 import java.awt.HeadlessException;
 import java.sql.SQLException;
@@ -233,7 +233,7 @@ public class registrationPage extends javax.swing.JFrame {
                 JOptionPane.showMessageDialog(null, "Password cannot be blank!", "Invlaid",JOptionPane.ERROR_MESSAGE );
             }
             
-            //multithreading to encrypt password fast
+            //multithreading to hash password fast
             ExecutorService service = Executors.newSingleThreadExecutor();
             Future<String> task1 = service.submit(()->{
                 return BCrypt.hashpw(rawPassword, BCrypt.gensalt(12));
@@ -241,9 +241,11 @@ public class registrationPage extends javax.swing.JFrame {
             String encrypted_pass=task1.get();
             service.shutdown();
 
-if (name.isEmpty()||email.isEmpty()||rawPassword.isEmpty()|| ownership.isEmpty()) {
-    JOptionPane.showMessageDialog(null, "Please fill all the fields!", "Invalid", JOptionPane.WARNING_MESSAGE);
-}
+            if (name.isEmpty()||email.isEmpty()||rawPassword.isEmpty()|| ownership.isEmpty()) {
+            JOptionPane.showMessageDialog(null, "Please fill all the fields!", "Invalid", JOptionPane.WARNING_MESSAGE);
+            return;
+            }
+            
 Connection connection = ConnectionProvider.getcon();
 try{
     Statement st = connection.createStatement();

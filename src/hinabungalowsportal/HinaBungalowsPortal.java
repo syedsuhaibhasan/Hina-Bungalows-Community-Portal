@@ -22,7 +22,7 @@ public class HinaBungalowsPortal {
 
         SwingUtilities.invokeLater(() -> {
             // open login window or admin dashboard
-            form.login loginWindow = new form.login();
+            form.adminView.login loginWindow = new form.adminView.login();
             loginWindow.setVisible(true);
         });       
     }

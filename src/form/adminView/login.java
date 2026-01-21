@@ -1,6 +1,7 @@
-package form;
+package form.adminView;
 import org.mindrot.jbcrypt.BCrypt;
 import dao.ConnectionProvider;
+import form.userView.userdashboard;
 import java.sql.PreparedStatement;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -30,8 +31,8 @@ public class login extends javax.swing.JFrame {
         ButtonGroup roleGroup = new ButtonGroup();
         roleGroup.add(jbtnuser);
         roleGroup.add(jbtnadmin);
-        BDutility.setimage(this, "utility/images/login-page.jpg", 800, 600);
-       this.getRootPane().setBorder(BorderFactory.createMatteBorder(9,9,9,9,Color.BLACK));
+        BDutility.setimage(this, "/utility/images/logo.png", 800, 600);
+       this.getRootPane().setBorder(BorderFactory.createMatteBorder(4,4,4,4,Color.BLACK));
     }
 
     /**

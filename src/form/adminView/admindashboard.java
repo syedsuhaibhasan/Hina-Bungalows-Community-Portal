@@ -1,4 +1,4 @@
-package form;
+package form.adminView;
 
 import java.awt.Color;
 import javax.swing.BorderFactory;
@@ -208,6 +208,7 @@ public class admindashboard extends javax.swing.JFrame {
     }//GEN-LAST:event_complainstatbtnActionPerformed
 
     private void notificationbtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_notificationbtnActionPerformed
+    BDutility.openForm(addNotification.class.getSimpleName(), new addNotification());
         // TODO add your handling code here:
     }//GEN-LAST:event_notificationbtnActionPerformed
 
