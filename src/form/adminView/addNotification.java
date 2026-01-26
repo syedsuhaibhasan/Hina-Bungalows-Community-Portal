@@ -10,7 +10,6 @@ import java.sql.Connection;
 import java.sql.PreparedStatement;
 import javax.swing.BorderFactory;
 import javax.swing.JOptionPane;
-import utility.BDutility;
 import utility.UIUtils;
 
 /**
