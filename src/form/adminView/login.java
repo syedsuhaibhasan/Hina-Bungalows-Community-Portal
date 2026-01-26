@@ -1,4 +1,5 @@
 package form.adminView;
+
 import org.mindrot.jbcrypt.BCrypt;
 import dao.ConnectionProvider;
 import form.userView.userdashboard;
@@ -305,7 +306,7 @@ public class login extends javax.swing.JFrame {
                 if (rs.next()) {
                     String storedHash = rs.getString("pwd_hash");
                     if (BCrypt.checkpw(pwd, storedHash)) {
-                        BDutility.openForm(userdashboard.class.getSimpleName(), new userdashboard());
+                        BDutility.openForm(userdashboard.class.getSimpleName(), new userdashboard(email));
                         this.dispose();   
                     }
                     else{
@@ -338,7 +339,6 @@ public class login extends javax.swing.JFrame {
      */
     
     public static void main(String args[]) {
-        /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
          * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
@@ -356,9 +356,8 @@ public class login extends javax.swing.JFrame {
         //</editor-fold>
          UIUtils.applyFlatLafAndRefresh();  
          
-        /* Create and display the form */
         SwingUtilities.invokeLater(() -> {
-        login frame = new login(); // constructor builds UI (initComponents)
+        login frame = new login(); 
         frame.setVisible(true);
     });
     }

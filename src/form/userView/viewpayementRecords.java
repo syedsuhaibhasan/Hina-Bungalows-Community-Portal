@@ -1,5 +1,6 @@
-package form.adminView;
+package form.userView;
 
+import form.adminView.*;
 import dao.ConnectionProvider;
 import java.awt.Color;
 import java.util.LinkedList;
@@ -16,9 +17,9 @@ import utility.UIUtils;
  *
  * @author Sohaib Hasan
  */
-public class payementRecords extends javax.swing.JFrame {
+public class viewpayementRecords extends javax.swing.JFrame {
     
-    private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(payementRecords.class.getName());
+    private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(viewpayementRecords.class.getName());
     
     class payementNode{
         int House_no;
@@ -49,7 +50,7 @@ public class payementRecords extends javax.swing.JFrame {
     LinkedList<payementNode>[] houses = new LinkedList[135];
     
     
-    public payementRecords() {   
+    public viewpayementRecords() {   
         initComponents();
         this.getRootPane().setBorder(BorderFactory.createMatteBorder(3,3,3,3,Color.BLACK));        
         for (int i = 0; i < 135; i++) {
@@ -81,7 +82,6 @@ public class payementRecords extends javax.swing.JFrame {
         jTable1 = new javax.swing.JTable();
         jComboBox1 = new javax.swing.JComboBox<>();
         jLabel1 = new javax.swing.JLabel();
-        savebtn = new javax.swing.JButton();
         jButton1 = new javax.swing.JButton();
         jComboBox2 = new javax.swing.JComboBox<>();
         jLabel3 = new javax.swing.JLabel();
@@ -264,7 +264,15 @@ public class payementRecords extends javax.swing.JFrame {
             new String [] {
                 "House no.", "Owner", "Month", "Year", "Payement Status", "Last Paid", "Amount Due"
             }
-        ));
+        ) {
+            boolean[] canEdit = new boolean [] {
+                false, false, false, false, false, false, false
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit [columnIndex];
+            }
+        });
         jTable1.getTableHeader().setReorderingAllowed(false);
         jScrollPane1.setViewportView(jTable1);
         if (jTable1.getColumnModel().getColumnCount() > 0) {
@@ -282,12 +290,6 @@ public class payementRecords extends javax.swing.JFrame {
 
         jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
         jLabel1.setText("Select a month:");
-
-        savebtn.setBackground(new java.awt.Color(2, 100, 182));
-        savebtn.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        savebtn.setForeground(new java.awt.Color(255, 255, 255));
-        savebtn.setText("SAVE TO DATABASE");
-        savebtn.addActionListener(this::savebtnActionPerformed);
 
         jButton1.setBackground(new java.awt.Color(2, 100, 182));
         jButton1.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
@@ -321,10 +323,8 @@ public class payementRecords extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addComponent(jComboBox2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addGroup(jPanel2Layout.createSequentialGroup()
-                        .addGap(169, 169, 169)
-                        .addComponent(savebtn)
-                        .addGap(142, 142, 142)
-                        .addComponent(jButton1)))
+                        .addGap(249, 249, 249)
+                        .addComponent(jButton1, javax.swing.GroupLayout.PREFERRED_SIZE, 231, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
         jPanel2Layout.setVerticalGroup(
@@ -338,11 +338,9 @@ public class payementRecords extends javax.swing.JFrame {
                     .addComponent(jComboBox2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(22, 22, 22)
                 .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 393, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(22, 22, 22)
-                .addGroup(jPanel2Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(savebtn)
-                    .addComponent(jButton1))
-                .addContainerGap(22, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 28, Short.MAX_VALUE)
+                .addComponent(jButton1)
+                .addGap(16, 16, 16))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
@@ -378,10 +376,6 @@ public class payementRecords extends javax.swing.JFrame {
     private void jComboBox1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBox1ActionPerformed
        this.month = (String) jComboBox1.getSelectedItem();
     }//GEN-LAST:event_jComboBox1ActionPerformed
-
-    private void savebtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_savebtnActionPerformed
-        saveDataToDatabase();
-    }//GEN-LAST:event_savebtnActionPerformed
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
          loadDataFromDatabase();
@@ -687,7 +681,7 @@ public class payementRecords extends javax.swing.JFrame {
         }
 
         UIUtils.applyFlatLafAndRefresh();
-        java.awt.EventQueue.invokeLater(() -> new payementRecords().setVisible(true));
+        java.awt.EventQueue.invokeLater(() -> new viewpayementRecords().setVisible(true));
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -702,6 +696,5 @@ public class payementRecords extends javax.swing.JFrame {
     private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;
     private javax.swing.JTable jTable1;
-    private javax.swing.JButton savebtn;
     // End of variables declaration//GEN-END:variables
 }

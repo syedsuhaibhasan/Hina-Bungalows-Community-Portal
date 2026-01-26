@@ -1,47 +1,124 @@
-package form.adminView;
+package form.userView;
 
 import dao.ConnectionProvider;
 import java.awt.Graphics2D;
 import java.awt.Image;
 import java.awt.RenderingHints;
 import java.awt.image.BufferedImage;
-import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.IOException;
+import java.io.ByteArrayInputStream;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import javax.imageio.ImageIO;
 import javax.swing.ImageIcon;
-import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
 import javax.swing.plaf.basic.BasicInternalFrameUI;
 import utility.UIUtils;
 
-public class KEBillUpload extends javax.swing.JFrame {
+public class viewKEBill extends javax.swing.JFrame {
 
-    private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(KEBillUpload.class.getName());
+    private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(viewKEBill.class.getName());
 
-    private BufferedImage originalImage = null;
-    private File selectedFile = null;
-    private BufferedImage scaledBufferedImage = null;
-
-    public KEBillUpload() {
+    public viewKEBill() {
         initComponents();
-
         jInternalFrame1.setBorder(null);
         if (jInternalFrame1.getUI() instanceof BasicInternalFrameUI) {
             ((BasicInternalFrameUI) jInternalFrame1.getUI()).setNorthPane(null);
         }
+        setFieldsEditable(false);
     }
 
-    private byte[] convertToBytes(BufferedImage image, String format) throws IOException {
-        if (image == null) return null;
-        try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
-            ImageIO.write(image, format, baos);
-            return baos.toByteArray();
+    private void setFieldsEditable(boolean editable) {
+        consumerNofield.setEditable(editable);
+        invoiceNofield.setEditable(editable);
+        unitsfield.setEditable(editable);
+        amountDuefield.setEditable(editable);
+    }
+
+    private void fetchBillByDate(String date) {
+        Connection con = null;
+        PreparedStatement ps = null;
+        ResultSet rs = null;
+        try {
+            con = ConnectionProvider.getcon();
+            ps = con.prepareStatement("SELECT consumerNo, invoiceNo, units, amountDue, billImage FROM KEBilldetails WHERE issueDate = ?");
+            ps.setString(1, date);
+            rs = ps.executeQuery();
+
+            if (rs.next()) {
+                consumerNofield.setText(rs.getString("consumerNo"));
+                invoiceNofield.setText(rs.getString("invoiceNo"));
+                unitsfield.setText(rs.getString("units"));
+                amountDuefield.setText(rs.getString("amountDue"));
+
+                byte[] imgBytes = rs.getBytes("billImage");
+                if (imgBytes != null) {
+                    loadImage(imgBytes);
+                } else {
+                    bill.setIcon(null);
+                    bill.setText("No Image");
+                }
+            } else {
+                clearFields();
+                JOptionPane.showMessageDialog(this, "No bill found for this date.", "Not Found", JOptionPane.INFORMATION_MESSAGE);
+            }
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+        } finally {
+            try {
+                if (rs != null) rs.close();
+                if (ps != null) ps.close();
+                if (con != null) con.close();
+            } catch (SQLException ex) {
+                System.out.println(ex.getMessage());
+            }
         }
+    }
+
+    private void loadImage(byte[] imgBytes) {
+        try {
+            BufferedImage img = ImageIO.read(new ByteArrayInputStream(imgBytes));
+            if (img != null) {
+                BufferedImage scaled = scaleImage(img, bill.getWidth(), bill.getHeight());
+                bill.setText(null);
+                bill.setIcon(new ImageIcon(scaled));
+            }
+        } catch (Exception ex) {
+            bill.setIcon(null);
+            bill.setText("Image Error");
+        }
+    }
+
+    private BufferedImage scaleImage(BufferedImage original, int maxWidth, int maxHeight) {
+         //this code was written with the help of BtechdaysYT channel
+        int w = Math.max(maxWidth, 267);
+        int h = Math.max(maxHeight, 364);
+
+        double scaleX = (double) w / original.getWidth();
+        double scaleY = (double) h / original.getHeight();
+        double scale = Math.min(scaleX, scaleY);
+
+        int newW = Math.max(1, (int) (original.getWidth() * scale));
+        int newH = Math.max(1, (int) (original.getHeight() * scale));
+
+        Image scaled = original.getScaledInstance(newW, newH, Image.SCALE_SMOOTH);
+        BufferedImage result = new BufferedImage(newW, newH, BufferedImage.TYPE_INT_ARGB);
+        Graphics2D g2 = result.createGraphics();
+        g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        g2.drawImage(scaled, 0, 0, null);
+        g2.dispose();
+        return result;
+    }
+
+    private void clearFields() {
+        consumerNofield.setText("");
+        invoiceNofield.setText("");
+        unitsfield.setText("");
+        amountDuefield.setText("");
+        bill.setIcon(null);
+        bill.setText("");
     }
 
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
@@ -77,10 +154,10 @@ public class KEBillUpload extends javax.swing.JFrame {
 
         headerLabel.setFont(new java.awt.Font("Segoe UI", 1, 24)); // NOI18N
         headerLabel.setForeground(new java.awt.Color(255, 255, 255));
-        headerLabel.setText("UPLOAD KE BILL");
+        headerLabel.setText("VIEW KE BILL");
 
-        backbtn.setForeground(new java.awt.Color(2, 100, 182));
         backbtn.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
+        backbtn.setForeground(new java.awt.Color(2, 100, 182));
         backbtn.setText("BACK");
         backbtn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -95,7 +172,7 @@ public class KEBillUpload extends javax.swing.JFrame {
             .addGroup(jPanel1Layout.createSequentialGroup()
                 .addGap(18, 18, 18)
                 .addComponent(headerLabel)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 300, Short.MAX_VALUE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 392, Short.MAX_VALUE)
                 .addComponent(backbtn, javax.swing.GroupLayout.PREFERRED_SIZE, 90, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addGap(18, 18, 18))
         );
@@ -166,9 +243,9 @@ public class KEBillUpload extends javax.swing.JFrame {
         );
 
         uploadbtn.setBackground(new java.awt.Color(2, 100, 182));
-        uploadbtn.setForeground(new java.awt.Color(255, 255, 255));
         uploadbtn.setFont(new java.awt.Font("Segoe UI", 1, 14)); // NOI18N
-        uploadbtn.setText("UPLOAD");
+        uploadbtn.setForeground(new java.awt.Color(255, 255, 255));
+        uploadbtn.setText("VIEW");
         uploadbtn.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 uploadbtnActionPerformed(evt);
@@ -271,42 +348,11 @@ public class KEBillUpload extends javax.swing.JFrame {
 
     private void uploadbtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_uploadbtnActionPerformed
         String date = dateField.getText().trim();
-        String invoiceNo = invoiceNofield.getText().trim();
-        String consumerNo = consumerNofield.getText().trim();
-        String units = unitsfield.getText().trim();
-        String amountDue = amountDuefield.getText().trim();
-
-        if (consumerNo.isEmpty() || invoiceNo.isEmpty() || date.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "Please fill Consumer No, Invoice No and Date.", "Validation", JOptionPane.WARNING_MESSAGE);
+        if (date.isEmpty() || "YYYY-MM-DD".equals(date)) {
+            JOptionPane.showMessageDialog(this, "Please enter a valid date.", "Validation", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        if (scaledBufferedImage == null) {
-            JOptionPane.showMessageDialog(this, "Please upload a bill image first.", "Validation", JOptionPane.WARNING_MESSAGE);
-            return;
-        }
-
-        try {
-            byte[] img = convertToBytes(scaledBufferedImage, "png");
-
-            try (Connection connection = ConnectionProvider.getcon();
-                 PreparedStatement preparedstatement = connection.prepareStatement(
-                         "INSERT INTO KEBilldetails (issueDate,invoiceNo,consumerNo,units,amountDue,billImage) VALUES (?,?,?,?,?,?)")) {
-
-                preparedstatement.setString(1, date);
-                preparedstatement.setString(2, invoiceNo);
-                preparedstatement.setString(3, consumerNo);
-                preparedstatement.setString(4, units);
-                preparedstatement.setString(5, amountDue);
-                preparedstatement.setBytes(6, img);
-
-                preparedstatement.executeUpdate();
-                JOptionPane.showMessageDialog(this, "Bill Uploaded Successfully");
-                dispose();
-            }
-        } catch (IOException | SQLException ex) {
-            logger.log(java.util.logging.Level.SEVERE, "Upload failed", ex);
-            JOptionPane.showMessageDialog(this, "Upload failed: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-        }
+        fetchBillByDate(date);
     }//GEN-LAST:event_uploadbtnActionPerformed
 
     private void consumerNofieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_consumerNofieldActionPerformed
@@ -316,44 +362,7 @@ public class KEBillUpload extends javax.swing.JFrame {
     }//GEN-LAST:event_amountDuefieldActionPerformed
 
     private void billMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_billMouseClicked
-        //this code was written with the help of BtechdaysYT channel
-        JFileChooser fileChooser = new JFileChooser();
-        int result = fileChooser.showOpenDialog(this);
-        if (result == JFileChooser.APPROVE_OPTION) {
-            selectedFile = fileChooser.getSelectedFile();
-            try {
-                originalImage = ImageIO.read(selectedFile);
-                if (originalImage == null) {
-                    JOptionPane.showMessageDialog(this, "Unsupported image file.", "Error", JOptionPane.ERROR_MESSAGE);
-                    return;
-                }
 
-                int originalWidth = originalImage.getWidth();
-                int originalHeight = originalImage.getHeight();
-                int labelWidth = Math.max(bill.getWidth(), 267);
-                int labelHeight = Math.max(bill.getHeight(), 364);
-
-                double scaleX = (double) labelWidth / originalWidth;
-                double scaleY = (double) labelHeight / originalHeight;
-                double scale = Math.min(scaleX, scaleY);
-
-                int scaledWidth = Math.max(1, (int) (originalWidth * scale));
-                int scaledHeight = Math.max(1, (int) (originalHeight * scale));
-
-                Image scaledImage = originalImage.getScaledInstance(scaledWidth, scaledHeight, Image.SCALE_SMOOTH);
-                scaledBufferedImage = new BufferedImage(scaledWidth, scaledHeight, BufferedImage.TYPE_INT_ARGB);
-                Graphics2D g2 = scaledBufferedImage.createGraphics();
-                g2.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
-                g2.drawImage(scaledImage, 0, 0, null);
-                g2.dispose();
-
-                bill.setText(null);
-                bill.setIcon(new ImageIcon(scaledBufferedImage));
-            } catch (IOException ex) {
-                logger.log(java.util.logging.Level.SEVERE, "Image load failed", ex);
-                JOptionPane.showMessageDialog(this, "Failed to load image: " + ex.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
-            }
-        }
     }//GEN-LAST:event_billMouseClicked
 
     public static void main(String args[]) {
@@ -369,7 +378,7 @@ public class KEBillUpload extends javax.swing.JFrame {
         }
 
         UIUtils.applyFlatLafAndRefresh();
-        SwingUtilities.invokeLater(() -> new KEBillUpload().setVisible(true));
+        SwingUtilities.invokeLater(() -> new viewKEBill().setVisible(true));
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

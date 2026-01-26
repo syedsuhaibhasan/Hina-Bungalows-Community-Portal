@@ -11,8 +11,6 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import javax.swing.JOptionPane;
 import javax.swing.SwingUtilities;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
 import utility.UIUtils;
 
 /**
@@ -38,15 +36,6 @@ public class maintenanceBreakdown extends javax.swing.JFrame {
             jComboBox2.setSelectedIndex(0);
             this.year = (String) jComboBox2.getSelectedItem();
         }
-
-        jTable1.getModel().addTableModelListener(new TableModelListener() {
-            @Override
-            public void tableChanged(TableModelEvent e) {
-                updateTotalsUI();
-            }
-        });
-
-        updateTotalsUI();
     }
 
     /**
@@ -364,248 +353,118 @@ public class maintenanceBreakdown extends javax.swing.JFrame {
     }//GEN-LAST:event_jComboBox2ActionPerformed
     
     private boolean isEmpty(){
-        
-        int rows = jTable1.getRowCount();
-        for (int i = 0; i < rows; i++) {
-            Object categoryObj = jTable1.getValueAt(i, 0);
-            String category = categoryObj == null ? "" : categoryObj.toString().trim();
-            if (category.isEmpty()) {
-                continue;
-            }
-
-            Object value = jTable1.getValueAt(i, 1);
-            if (value == null) {
-                continue;
-            }
-            if (value instanceof Number) {
-                continue;
-            }
-            String s = value.toString().trim();
-            if (s.isEmpty()) {
-                continue;
-            }
-            try {
-                Double.parseDouble(s.replaceAll(",", ""));
-            } catch (NumberFormatException ex) {
+        int[] categoryRows = {0, 2, 4, 6, 8, 10};
+        for (int row : categoryRows) {
+            Object value = jTable1.getValueAt(row, 1);
+            if (value == null || value.toString().trim().isEmpty()) {
                 return true;
             }
         }
         return false;
     }
     
-     private int  updateSpent(){
+    private int getAmountFromRow(int row) {
+        Object obj = jTable1.getValueAt(row, 1);
+        if (obj == null) return 0;
+        if (obj instanceof Number) return ((Number) obj).intValue();
+        String s = obj.toString().trim();
+        if (s.isEmpty()) return 0;
+        return Integer.parseInt(s);
+    }
+
+    private int calculateTotalSpent() {
         int spent = 0;
         for (int i = 0; i < jTable1.getRowCount(); i++) {
             Object categoryObj = jTable1.getValueAt(i, 0);
             String category = categoryObj == null ? "" : categoryObj.toString().trim();
-            if (category.isEmpty()) {
-                continue;
-            }
-            Object obj = jTable1.getValueAt(i, 1);
-            if (obj == null) continue;
-            try {
-                int value;
-                if (obj instanceof Number) {
-                    //this type casted obj in to integer to store it in value local variable
-                    value = ((Number) obj).intValue();
-                } else {
-                    String s = obj.toString().trim().replaceAll(",", "");
-                    if (s.isEmpty()) continue;
-                    value = (int) Math.round(Double.parseDouble(s));
-                }
-                spent += value;
-            } catch (NumberFormatException ex) {
-                System.out.println(ex.getMessage());
-            }
+            if (category.isEmpty()) continue;
+            spent += getAmountFromRow(i);
         }
         return spent;
     }
-    
-    
-    private int getIntFromTable(int row, int col) {
-        try {
-            Object obj = jTable1.getValueAt(row, col);
-            if (obj == null) return 0;
-            if (obj instanceof Number) return ((Number) obj).intValue();
-            String s = obj.toString().trim().replaceAll(",", "");
-            if (s.isEmpty()) return 0;
-            return (int) Math.round(Double.parseDouble(s));
-        } catch (NumberFormatException ex) {
-            return 0;
-        }
-    }
 
-    private int getAmountForCategory(String categoryName) {
-        if (categoryName == null || categoryName.trim().isEmpty()) return 0;
-        for (int i = 0; i < jTable1.getRowCount(); i++) {
-            Object categoryObj = jTable1.getValueAt(i, 0);
-            String category = categoryObj == null ? "" : categoryObj.toString().trim();
-            if (categoryName.equalsIgnoreCase(category)) {
-                return getIntFromTable(i, 1);
-            }
-        }
-        return 0;
-    }
-
-    private int getSelectedYearInt() {
-        try {
-            if (this.year == null) return 0;
-            return Integer.parseInt(this.year.trim());
-        } catch (NumberFormatException ex) {
-            return 0;
-        }
-    }
-
-    private int parseCollectedAmountLabel() {
-        try {
-            String collectedText = lblAmount.getText().replaceAll("Rs\\.?", "").replaceAll(",", "").trim();
-            if (collectedText.isEmpty()) return 0;
-            return (int) Math.round(Double.parseDouble(collectedText));
-        } catch (NumberFormatException ex) {
-            return 0;
-        }
-    }
-
-    private void updateTotalsUI() {
-        int spent = updateSpent();
-        jLabel7.setText("Rs. " + spent);
-
-        int collected = parseCollectedAmountLabel();
-        int remaining = collected - spent;
-        jLabel8.setText("Rs. " + remaining);
-    }
-
-    private int getCollectedAmountFromPayments() throws SQLException {
-        Connection connection = null;
+    private int getCollectedAmount() {
+        Connection con = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
+        int collected = 0;
         try {
-            connection = ConnectionProvider.getcon();
-            if (connection == null) {
-                throw new SQLException("Database connection is null");
-            }
-
-            int yearInt = getSelectedYearInt();
-            int perHouseFee = 2000;
-            String sql = "SELECT COUNT(*) AS paidCount "
-                       + "FROM payments "
-                       + "WHERE month = ? AND year = ? "
-                       + "AND (LOWER(CAST(payment_status AS CHAR)) IN ('1','true','paid'))";
-            ps = connection.prepareStatement(sql);
+            con = ConnectionProvider.getcon();
+            ps = con.prepareStatement("SELECT COALESCE(SUM(amount_paid),0) AS total FROM payments WHERE month = ? AND year = ? AND payment_status = 1");
             ps.setString(1, this.month);
-            ps.setInt(2, yearInt);
+            ps.setInt(2, Integer.parseInt(this.year.trim()));
             rs = ps.executeQuery();
             if (rs.next()) {
-                return rs.getInt("paidCount") * perHouseFee;
+                collected = rs.getInt("total");
             }
-            return 0;
-        } finally {
-            try { if (rs != null) rs.close(); } catch (SQLException ex) { }
-            try { if (ps != null) ps.close(); } catch (SQLException ex) { }
-            try { if (connection != null) connection.close(); } catch (SQLException ex) { }
-        }
-    }
-
-    private void ensureCollectedAmountColumnExists(Connection connection) {
-        PreparedStatement ps = null;
-        try {
-            ps = connection.prepareStatement("ALTER TABLE maintenanceBreakdown ADD COLUMN collectedAmount INT DEFAULT 0");
-            ps.executeUpdate();
         } catch (SQLException ex) {
+            System.out.println(ex.getMessage());
         } finally {
-            try { if (ps != null) ps.close(); } catch (SQLException ex) { }
+            try { if (rs != null) rs.close(); } catch (SQLException ex) {}
+            try { if (ps != null) ps.close(); } catch (SQLException ex) {}
+            try { if (con != null) con.close(); } catch (SQLException ex) {}
         }
+        return collected;
     }
     
     
     private void savebtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_savebtnActionPerformed
-         
-    
         if (isEmpty()) {
-            JOptionPane.showMessageDialog(null, "Please fill all the fields with numeric values", "INVALID", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(null, "Please fill all the fields", "INVALID", JOptionPane.WARNING_MESSAGE);
             return;
         }
-         
-        try{
-        int keBillamount = getAmountForCategory("K.E Bill");
-        int kwsbBillamount = getAmountForCategory("K.W.S.B Bill");
-        int repair = getAmountForCategory("Repair");
-        int guardSalary = getAmountForCategory("Guard Salary");
-        int sweeperSalary = getAmountForCategory("Sweeper Salary");
-        int misc = getAmountForCategory("Misc");
         
-        int collected = 0;
-        collected = parseCollectedAmountLabel();
-        int totalSpent = updateSpent();
-        int remainingInt = collected - totalSpent;
-        String remaining = String.valueOf(remainingInt);
+        // Get amounts from table rows
+        int keBill = getAmountFromRow(0);
+        int kwsbBill = getAmountFromRow(2);
+        int repair = getAmountFromRow(4);
+        int guardSalary = getAmountFromRow(6);
+        int sweeperSalary = getAmountFromRow(8);
+        int misc = getAmountFromRow(10);
         
+        // Calculate totals
+        int collected = getCollectedAmount();
+        int totalSpent = calculateTotalSpent();
+        int remaining = collected - totalSpent;
         
-                Connection connection = null;
-                PreparedStatement preparedstatement = null;
-                try{
-                    connection = ConnectionProvider.getcon();
-                    ensureCollectedAmountColumnExists(connection);
-                    preparedstatement = connection.prepareStatement("INSERT INTO maintenanceBreakdown (month,year,keBillamount,kwsbBillamount,"
-                                                                     + "repair,guardSalary,sweeperSalary,misc,remainingAmount) VALUES (?,?,?,?,?,?,?,?,?)");
-                    preparedstatement.setString(1, this.month);
-                    preparedstatement.setString(2, this.year);
-                    preparedstatement.setInt(3, keBillamount);
-                    preparedstatement.setInt(4, kwsbBillamount);
-                    preparedstatement.setInt(5, repair);
-                    preparedstatement.setInt(6, guardSalary);
-                    preparedstatement.setInt(7, sweeperSalary);
-                    preparedstatement.setInt(8, misc);
-                    preparedstatement.setString(9, remaining);
-                    // execute insert
-                    preparedstatement.executeUpdate();
-                }catch(SQLException ex){
-                    System.out.println(ex.getMessage());
-                }finally{
-                    try {
-                        if (preparedstatement != null) preparedstatement.close();
-                    } catch (SQLException ex) {
-                        System.out.println(ex.getMessage());
-                    }
-                    try {
-                        if (connection != null) connection.close();
-                    } catch (SQLException ex) {
-                        System.out.println(ex.getMessage());
-                    }
-                }
-        }catch(Exception ex){
-            System.out.println(ex.getMessage());
+        // Update UI
+        lblAmount.setText("Rs. " + collected);
+        jLabel7.setText("Rs. " + totalSpent);
+        jLabel8.setText("Rs. " + remaining);
+        
+        // Save to database
+        Connection con = null;
+        PreparedStatement ps = null;
+        try {
+            con = ConnectionProvider.getcon();
+            ps = con.prepareStatement("INSERT INTO maintenanceBreakdown (month,year,keBillamount,kwsbBillamount,repair,guardSalary,sweeperSalary,misc,remainingAmount) VALUES (?,?,?,?,?,?,?,?,?)");
+            ps.setString(1, this.month);
+            ps.setString(2, this.year);
+            ps.setInt(3, keBill);
+            ps.setInt(4, kwsbBill);
+            ps.setInt(5, repair);
+            ps.setInt(6, guardSalary);
+            ps.setInt(7, sweeperSalary);
+            ps.setInt(8, misc);
+            ps.setInt(9, remaining);
+            ps.executeUpdate();
+            JOptionPane.showMessageDialog(this, "Saved successfully!");
+        } catch (SQLException ex) {
+            JOptionPane.showMessageDialog(this, "Error: " + ex.getMessage());
+        } finally {
+            try { if (ps != null) ps.close(); } catch (SQLException ex) {}
+            try { if (con != null) con.close(); } catch (SQLException ex) {}
         }
-              
     }//GEN-LAST:event_savebtnActionPerformed
 
     private void jButton2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton2ActionPerformed
-        try {
-            int collected = getCollectedAmountFromPayments();
-            lblAmount.setText("Rs. " + collected);
-            updateTotalsUI();
-
-            Connection connection = null;
-            PreparedStatement ps = null;
-            try {
-                connection = ConnectionProvider.getcon();
-                if (connection != null) {
-                    ensureCollectedAmountColumnExists(connection);
-                    ps = connection.prepareStatement(
-                        "UPDATE maintenanceBreakdown SET collectedAmount = ? WHERE month = ? AND year = ?"
-                    );
-                    ps.setInt(1, collected);
-                    ps.setString(2, this.month);
-                    ps.setString(3, this.year);
-                    ps.executeUpdate();
-                }
-            } finally {
-                try { if (ps != null) ps.close(); } catch (SQLException ex) { }
-                try { if (connection != null) connection.close(); } catch (SQLException ex) { }
-            }
-        } catch (SQLException ex) {
-            JOptionPane.showMessageDialog(this, "Error refreshing collected amount: " + ex.getMessage());
-        }
+        int collected = getCollectedAmount();
+        int totalSpent = calculateTotalSpent();
+        int remaining = collected - totalSpent;
+        
+        lblAmount.setText("Rs. " + collected);
+        jLabel7.setText("Rs. " + totalSpent);
+        jLabel8.setText("Rs. " + remaining);
     }//GEN-LAST:event_jButton2ActionPerformed
 
     private void jButton3ActionPerformed(java.awt.event.ActionEvent evt) {
@@ -619,6 +478,8 @@ public class maintenanceBreakdown extends javax.swing.JFrame {
             }
         }
         lblAmount.setText("Rs. ");
+        jLabel7.setText("Rs.");
+        jLabel8.setText("Rs.");
     }
 
 
