@@ -27,7 +27,6 @@ public class maintenanceBreakdown extends javax.swing.JFrame {
     public maintenanceBreakdown() {
         initComponents();
         
-        //for setting default values for month and year
         if (jComboBox1.getItemCount() > 0) {
             jComboBox1.setSelectedIndex(0);
             this.month = (String) jComboBox1.getSelectedItem();
@@ -413,8 +412,7 @@ public class maintenanceBreakdown extends javax.swing.JFrame {
             JOptionPane.showMessageDialog(null, "Please fill all the fields", "INVALID", JOptionPane.WARNING_MESSAGE);
             return;
         }
-        
-        // Get amounts from table rows
+
         int keBill = getAmountFromRow(0);
         int kwsbBill = getAmountFromRow(2);
         int repair = getAmountFromRow(4);
@@ -422,17 +420,14 @@ public class maintenanceBreakdown extends javax.swing.JFrame {
         int sweeperSalary = getAmountFromRow(8);
         int misc = getAmountFromRow(10);
         
-        // Calculate totals
         int collected = getCollectedAmount();
         int totalSpent = calculateTotalSpent();
         int remaining = collected - totalSpent;
         
-        // Update UI
         lblAmount.setText("Rs. " + collected);
         jLabel7.setText("Rs. " + totalSpent);
         jLabel8.setText("Rs. " + remaining);
-        
-        // Save to database
+
         Connection con = null;
         PreparedStatement ps = null;
         try {

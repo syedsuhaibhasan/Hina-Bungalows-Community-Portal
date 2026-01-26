@@ -6,13 +6,13 @@ package form.userView;
 
 import dao.ConnectionProvider;
 import utility.UIUtils;
+import utility.BDutility;
 import java.sql.ResultSet;
 import java.sql.Statement;
 import java.sql.PreparedStatement;
 import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.Stack;
-import java.time.LocalDate;
 /**
  *
  * @author 24F-CS-192
@@ -27,30 +27,28 @@ public class userdashboard extends javax.swing.JFrame {
     
     Stack<String> Notifications = new Stack<>();
     static String userEmail = null;
+    private String month = null;
+    private String year = null;
+    
     public userdashboard(String email) throws SQLException {
         userEmail = email;
-        initComponents(); 
-        monthComboBox.setSelectedItem(getCurrentMonthName());
-        yearComboBox.setSelectedItem(String.valueOf(LocalDate.now().getYear()));
+        initComponents();
+        if (monthComboBox.getItemCount() > 0) {
+            monthComboBox.setSelectedIndex(0);
+            this.month = (String) monthComboBox.getSelectedItem();
+        }
+        if (yearComboBox.getItemCount() > 0) {
+            yearComboBox.setSelectedIndex(0);
+            this.year = (String) yearComboBox.getSelectedItem();
+        }
         monthComboBox.addActionListener(this::monthComboBoxActionPerformed);
         yearComboBox.addActionListener(this::yearComboBoxActionPerformed);
         loadUserInfo(userEmail);
-        loadPaymentStatus();
         addElement();
     }
 
-    private String getCurrentMonthName() {
-        String[] months = {"January", "Feburary", "March", "April", "May", "June",
-            "July", "August", "September", "October", "November", "December"};
-        int index = LocalDate.now().getMonthValue() - 1;
-        return months[index];
-    }
-
     private void loadPaymentStatus() throws SQLException {
-        String month = getSelectedMonth();
-        int year = getSelectedYear();
-
-        monthValueLabel.setText(month);
+        monthValueLabel.setText(this.month);
         statusValueLabel.setText("-");
         amountValueLabel.setText("-");
 
@@ -66,8 +64,8 @@ public class userdashboard extends javax.swing.JFrame {
             con = ConnectionProvider.getcon();
             ps = con.prepareStatement("SELECT payment_status, amount_due FROM payments WHERE house_no = ? AND month = ? AND year = ?");
             ps.setInt(1, houseNo);
-            ps.setString(2, month);
-            ps.setInt(3, year);
+            ps.setString(2, this.month);
+            ps.setInt(3, Integer.parseInt(this.year.trim()));
             rs = ps.executeQuery();
 
             if (rs.next()) {
@@ -81,27 +79,6 @@ public class userdashboard extends javax.swing.JFrame {
             if (rs != null) rs.close();
             if (ps != null) ps.close();
             if (con != null) con.close();
-        }
-    }
-
-    private String getSelectedMonth() {
-        Object selected = monthComboBox.getSelectedItem();
-        return selected.toString().trim();
-    }
-
-    private int getSelectedYear() {
-        Object selected = yearComboBox.getSelectedItem();
-        if (selected == null) {
-            return LocalDate.now().getYear();
-        }
-        String value = selected.toString().trim();
-        if (value.isEmpty()) {
-            return LocalDate.now().getYear();
-        }
-        try {
-            return Integer.parseInt(value);
-        } catch (NumberFormatException ex) {
-            return LocalDate.now().getYear();
         }
     }
 
@@ -520,6 +497,7 @@ public class userdashboard extends javax.swing.JFrame {
         complainbtn.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         complainbtn.setForeground(new java.awt.Color(255, 255, 255));
         complainbtn.setText("Register Complain");
+        complainbtn.addActionListener(this::complainbtnActionPerformed);
 
         javax.swing.GroupLayout actionsPanelLayout = new javax.swing.GroupLayout(actionsPanel);
         actionsPanel.setLayout(actionsPanelLayout);
@@ -586,18 +564,19 @@ public class userdashboard extends javax.swing.JFrame {
     
     
     private void monthlyExpensebtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_monthlyExpensebtnActionPerformed
-        // TODO add your handling code here:
+        BDutility.openForm(viewMonthlyExpense.class.getSimpleName(), new viewMonthlyExpense());
     }//GEN-LAST:event_monthlyExpensebtnActionPerformed
 
     private void viewKeBillButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_viewKeBillButtonActionPerformed
-        // TODO add your handling code here:
+        BDutility.openForm(viewKEBill.class.getSimpleName(), new viewKEBill());
     }//GEN-LAST:event_viewKeBillButtonActionPerformed
 
     private void paymentRecbtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_paymentRecbtnActionPerformed
-        // TODO add your handling code here:
+        BDutility.openForm(viewpayementRecords.class.getSimpleName(), new viewpayementRecords());
     }//GEN-LAST:event_paymentRecbtnActionPerformed
 
     private void monthComboBoxActionPerformed(java.awt.event.ActionEvent evt) {
+        this.month = (String) monthComboBox.getSelectedItem();
         try {
             loadPaymentStatus();
         } catch (SQLException ex) {
@@ -606,11 +585,16 @@ public class userdashboard extends javax.swing.JFrame {
     }
 
     private void yearComboBoxActionPerformed(java.awt.event.ActionEvent evt) {
+        this.year = (String) yearComboBox.getSelectedItem();
         try {
             loadPaymentStatus();
         } catch (SQLException ex) {
             System.out.println(ex.getMessage());
         }
+    }
+
+    private void complainbtnActionPerformed(java.awt.event.ActionEvent evt) {
+        BDutility.openForm(complain.class.getSimpleName(), new complain());
     }
 
     /**

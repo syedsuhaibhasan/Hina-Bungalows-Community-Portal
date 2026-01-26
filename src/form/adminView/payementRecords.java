@@ -563,8 +563,7 @@ public class payementRecords extends javax.swing.JFrame {
                 if (!isPaid && !hasLastPaidDate && !hasAmountDue && !hasAmountPaid) {
                     continue;
                 }
-                
-                // updte linked list
+
                 int index = houseNo - 1;
                 if (index >= 0 && index < 135) {
                     houses[index].clear();
@@ -574,14 +573,12 @@ public class payementRecords extends javax.swing.JFrame {
                     houses[index].add(newNode);
                 }
                 
-                // check if record exists in db
                 psCheck.setInt(1, houseNo);
                 psCheck.setString(2, monthVal);
                 psCheck.setInt(3, yearInt);
                 ResultSet rs = psCheck.executeQuery();
                 
                 if (rs.next()) {
-                    // updte existing record
                     psUpdate.setInt(1, isPaid ? 1 : 0);
                     if (!hasLastPaidDate) {
                         psUpdate.setNull(2, java.sql.Types.DATE);
@@ -595,7 +592,6 @@ public class payementRecords extends javax.swing.JFrame {
                     psUpdate.setInt(7, yearInt);
                     psUpdate.executeUpdate();
                 } else {
-                    // insret new record
                     psInsert.setInt(1, houseNo);
                     psInsert.setString(2, monthVal);
                     psInsert.setInt(3, yearInt);

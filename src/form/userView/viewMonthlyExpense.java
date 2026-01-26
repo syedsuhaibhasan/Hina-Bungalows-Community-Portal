@@ -28,7 +28,6 @@ public class viewMonthlyExpense extends javax.swing.JFrame {
     public viewMonthlyExpense() {
         initComponents();
         
-        //for setting default values for month and year
         if (jComboBox1.getItemCount() > 0) {
             jComboBox1.setSelectedIndex(0);
             this.month = (String) jComboBox1.getSelectedItem();
@@ -392,15 +391,13 @@ public class viewMonthlyExpense extends javax.swing.JFrame {
             rs = ps.executeQuery();
             
             if (rs.next()) {
-                // Set table values
                 jTable1.setValueAt(rs.getInt("keBillamount"), 0, 1);
                 jTable1.setValueAt(rs.getInt("kwsbBillamount"), 2, 1);
                 jTable1.setValueAt(rs.getInt("repair"), 4, 1);
                 jTable1.setValueAt(rs.getInt("guardSalary"), 6, 1);
                 jTable1.setValueAt(rs.getInt("sweeperSalary"), 8, 1);
                 jTable1.setValueAt(rs.getInt("misc"), 10, 1);
-                
-                // Calculate totals
+
                 int collected = getCollectedAmount();
                 int totalSpent = calculateTotalSpent();
                 int remaining = rs.getInt("remainingAmount");

@@ -204,7 +204,7 @@ public class admindashboard extends javax.swing.JFrame {
     }//GEN-LAST:event_payementstatbtnActionPerformed
 
     private void complainstatbtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_complainstatbtnActionPerformed
-        // TODO add your handling code here:
+        BDutility.openForm(viewComplain.class.getSimpleName(), new viewComplain());
     }//GEN-LAST:event_complainstatbtnActionPerformed
 
     private void notificationbtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_notificationbtnActionPerformed
