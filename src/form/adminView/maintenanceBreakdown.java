@@ -28,13 +28,12 @@ public class maintenanceBreakdown extends javax.swing.JFrame {
         initComponents();
         
         if (jComboBox1.getItemCount() > 0) {
-            jComboBox1.setSelectedIndex(0);
             this.month = (String) jComboBox1.getSelectedItem();
         }
         if (jComboBox2.getItemCount() > 0) {
-            jComboBox2.setSelectedIndex(0);
             this.year = (String) jComboBox2.getSelectedItem();
         }
+        loadCollectedAmount();
     }
 
     /**
@@ -337,7 +336,6 @@ public class maintenanceBreakdown extends javax.swing.JFrame {
     private void jComboBox1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBox1ActionPerformed
         
         this.month = (String) jComboBox1.getSelectedItem();
-        // TODO add your handling code here:
     }//GEN-LAST:event_jComboBox1ActionPerformed
 
     
@@ -348,18 +346,17 @@ public class maintenanceBreakdown extends javax.swing.JFrame {
     private void jComboBox2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jComboBox2ActionPerformed
        
         this.year = (String) jComboBox2.getSelectedItem();
-        // TODO add your handling code here: 
     }//GEN-LAST:event_jComboBox2ActionPerformed
     
     private boolean isEmpty(){
         int[] categoryRows = {0, 2, 4, 6, 8, 10};
         for (int row : categoryRows) {
             Object value = jTable1.getValueAt(row, 1);
-            if (value == null || value.toString().trim().isEmpty()) {
-                return true;
+            if (value != null && !value.toString().trim().isEmpty()) {
+                return false;
             }
         }
-        return false;
+        return true;
     }
     
     private int getAmountFromRow(int row) {
@@ -382,19 +379,26 @@ public class maintenanceBreakdown extends javax.swing.JFrame {
         return spent;
     }
 
+    private void loadCollectedAmount() {
+        if (this.month == null || this.year == null) return;
+        int collected = getCollectedAmount();
+        lblAmount.setText("Rs. " + collected);
+    }
+
     private int getCollectedAmount() {
         Connection con = null;
         PreparedStatement ps = null;
         ResultSet rs = null;
         int collected = 0;
+        if (this.month == null || this.year == null) return 0;
         try {
             con = ConnectionProvider.getcon();
-            ps = con.prepareStatement("SELECT COALESCE(SUM(amount_paid),0) AS total FROM payments WHERE month = ? AND year = ? AND payment_status = 1");
+            ps = con.prepareStatement("SELECT COUNT(*) AS total FROM payments WHERE month = ? AND year = ? AND payment_status = 1");
             ps.setString(1, this.month);
             ps.setInt(2, Integer.parseInt(this.year.trim()));
             rs = ps.executeQuery();
             if (rs.next()) {
-                collected = rs.getInt("total");
+                collected = rs.getInt("total") * 2000;
             }
         } catch (SQLException ex) {
             System.out.println(ex.getMessage());

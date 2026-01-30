@@ -15,13 +15,12 @@ public class HinaBungalowsPortal {
      * @param args the command line arguments
      */
     public static void main(String[] args) {
-        UIManager.put("Component.arc", 16);      // general component corner radius
-        UIManager.put("Button.arc", 14);         // button radius
-        UIManager.put("TextComponent.arc", 12);  // text fields
+        UIManager.put("Component.arc", 16);    
+        UIManager.put("Button.arc", 14);         
+        UIManager.put("TextComponent.arc", 12); 
         FlatLightLaf.setup(); // install FlatLaf L&F
 
         SwingUtilities.invokeLater(() -> {
-            // open login window or admin dashboard
             form.adminView.login loginWindow = new form.adminView.login();
             loginWindow.setVisible(true);
         });       

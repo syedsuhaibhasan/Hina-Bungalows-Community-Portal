@@ -224,6 +224,7 @@ public class userdashboard extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("User Dashboard");
+        setUndecorated(true);
         setMinimumSize(new java.awt.Dimension(900, 600));
 
         mainPanel.setBackground(new java.awt.Color(245, 247, 250));

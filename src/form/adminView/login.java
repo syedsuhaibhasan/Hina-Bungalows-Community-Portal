@@ -269,7 +269,10 @@ public class login extends javax.swing.JFrame {
         ResultSet rs = null;
     try{    
             connection = ConnectionProvider.getcon();
-            preparedstatement = connection.prepareStatement("SELECT*FROM admin_data WHERE email=?");
+            preparedstatement = connection.prepareStatement(""
+                    + ""
+                    + ""
+                    + "SELECT*FROM admin_data WHERE email=?");
             preparedstatement.setString(1, email);
             rs = preparedstatement.executeQuery();
                 if (rs.next()) {

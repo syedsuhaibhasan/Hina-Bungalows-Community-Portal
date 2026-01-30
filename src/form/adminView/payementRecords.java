@@ -549,7 +549,7 @@ public class payementRecords extends javax.swing.JFrame {
                 String paymentStatus = getStringFromTable(model, row, 4);
                 String lastPaid = getStringFromTable(model, row, 5);
                 int amountDue = getIntFromTable(model, row, 6);
-                int amountPaid = getIntFromTable(model, row, 7);
+                int amountPaid = 0;
 
                 if (houseNo <= 0) {
                     continue;
